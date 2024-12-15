@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D3 Treemap</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .node {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .node rect {
+      stroke: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center;">Treemap of Job Titles and Compensation</h1>
+  <div id="treemap"></div>
+
+  <script>
+    // Set dimensions
+    const width = 960;
+    const height = 600;
+
+    // Create the SVG container
+    const svg = d3.select("#treemap")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("font", "10px sans-serif");
+
+    // Load the JSON data
+    d3.json("C:\Users\Amrutha\Desktop\CL-4\[Processed] Design Pay Asia Public Data.xlsx - Data Source.csv").then(data => {
+      // Create the root hierarchy
+      const root = d3.hierarchy(data)
+        .sum(d => d.value)
+        .sort((a, b) => b.value - a.value);
+
+      // Create the treemap layout
+      d3.treemap()
+        .size([width, height])
+        .padding(1)
+        (root);
+
+      // Add groups for nodes
+      const nodes = svg.selectAll("g")
+        .data(root.leaves())
+        .enter()
+        .append("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+      // Draw rectangles
+      nodes.append("rect")
+        .attr("id", d => d.data.name)
+        .attr("width", d => d.x1 - d.x0)
+        .attr("height", d => d.y1 - d.y0)
+        .attr("fill", d => d3.interpolatePlasma(d.value / 90000)); // Adjust color scale
+
+      // Add labels
+      nodes.append("text")
+        .attr("x", d => (d.x1 - d.x0) / 2)
+        .attr("y", d => (d.y1 - d.y0) / 2)
+        .attr("dy", ".35em")
+        .attr("fill", "white")
+        .text(d => d.data.name)
+        .attr("class", "node")
+        .attr("text-anchor", "middle");
+    }).catch(error => {
+      console.error("Error loading data:", error);
+    });
+  </script>
+</body>
+</html>
+
